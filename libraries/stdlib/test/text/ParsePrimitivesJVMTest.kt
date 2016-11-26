@@ -14,33 +14,35 @@ class ParsePrimitivesJVMTest {
     }
 
     @Test fun toByte() {
-        CompareBehaviorContext({it.toByte()}, {it.toByteOrNull()}).apply {
+        compareConversion({it.toByte()}, {it.toByteOrNull()}) {
+            assertProduce("127", Byte.MAX_VALUE)
             assertProduce("+77", 77.toByte())
             assertProduce("-128", Byte.MIN_VALUE)
             assertFailsOrNull("128")
         }
 
-        CompareBehaviorWithRadixContext(String::toByte, String::toByteOrNull).apply {
+        compareConversionWithRadix(String::toByte, String::toByteOrNull) {
             assertProduce(16, "7F", 127.toByte())
             assertFailsOrNull(2, "10000000")
         }
     }
 
     @Test fun toShort() {
-        CompareBehaviorContext({it.toShort()}, {it.toShortOrNull()}).apply {
-            assertProduce("77", 77.toShort())
+        compareConversion({it.toShort()}, {it.toShortOrNull()}) {
+            assertProduce("+77", 77.toShort())
+            assertProduce("32767", Short.MAX_VALUE)
             assertProduce("-32768", Short.MIN_VALUE)
             assertFailsOrNull("+32768")
         }
 
-        CompareBehaviorWithRadixContext(String::toShort, String::toShortOrNull).apply {
+        compareConversionWithRadix(String::toShort, String::toShortOrNull) {
             assertProduce(16, "7F", 127.toShort())
             assertFailsOrNull(5, "10000000")
         }
     }
 
     @Test fun toInt() {
-        CompareBehaviorContext({it.toInt()}, {it.toIntOrNull()}).apply {
+        compareConversion({it.toInt()}, {it.toIntOrNull()}) {
             assertProduce("77", 77)
             assertProduce("+2147483647", Int.MAX_VALUE)
             assertProduce("-2147483648", Int.MIN_VALUE)
@@ -50,7 +52,7 @@ class ParsePrimitivesJVMTest {
             assertFailsOrNull("239239kotlin")
         }
 
-        CompareBehaviorWithRadixContext(String::toInt, String::toIntOrNull).apply {
+        compareConversionWithRadix(String::toInt, String::toIntOrNull) {
             assertProduce(10, "0", 0)
             assertProduce(10, "473", 473)
             assertProduce(10, "+42", 42)
@@ -72,7 +74,7 @@ class ParsePrimitivesJVMTest {
     }
 
     @Test fun toLong() {
-        CompareBehaviorContext({it.toLong()}, {it.toLongOrNull()}).apply {
+        compareConversion({it.toLong()}, {it.toLongOrNull()}) {
             assertProduce("77", 77.toLong())
             assertProduce("+9223372036854775807", Long.MAX_VALUE)
             assertProduce("-9223372036854775808", Long.MIN_VALUE)
@@ -85,7 +87,7 @@ class ParsePrimitivesJVMTest {
             assertFailsOrNull("-922337KOTLIN775809")
         }
 
-        CompareBehaviorWithRadixContext(String::toLong, String::toLongOrNull).apply {
+        compareConversionWithRadix(String::toLong, String::toLongOrNull) {
             assertProduce(10, "0", 0L)
             assertProduce(10, "473", 473L)
             assertProduce(10, "+42", 42L)
@@ -104,7 +106,7 @@ class ParsePrimitivesJVMTest {
     }
 
     @Test fun toFloat() {
-        CompareBehaviorContext({it.toFloat()}, {it.toFloatOrNull()}).apply {
+        compareConversion(String::toFloat, String::toFloatOrNull) {
             assertProduce("77.0", 77.0f)
             assertProduce("-1e39", Float.NEGATIVE_INFINITY)
             assertProduce("1000000000000000000000000000000000000000", Float.POSITIVE_INFINITY)
@@ -113,7 +115,7 @@ class ParsePrimitivesJVMTest {
     }
 
     @Test fun toDouble() {
-        CompareBehaviorContext({it.toDouble()}, {it.toDoubleOrNull()}).apply {
+        compareConversion(String::toDouble, String::toDoubleOrNull) {
             assertProduce("-77", -77.0)
             assertProduce("77.", 77.0)
             assertProduce("77.0", 77.0)
@@ -136,8 +138,22 @@ class ParsePrimitivesJVMTest {
 }
 
 
-private class CompareBehaviorContext<T: Any>(val convertOrFail: (String) -> T,
-                                             val convertOrNull: (String) -> T?) {
+private fun <T : Any> compareConversion(convertOrFail: (String) -> T,
+                                        convertOrNull: (String) -> T?,
+                                        assertions: ConversionContext<T>.() -> Unit) {
+    ConversionContext(convertOrFail, convertOrNull).assertions()
+}
+
+
+private fun <T : Any> compareConversionWithRadix(convertOrFail: String.(Int) -> T,
+                                                 convertOrNull: String.(Int) -> T?,
+                                                 assertions: ConversionWithRadixContext<T>.() -> Unit) {
+    ConversionWithRadixContext(convertOrFail, convertOrNull).assertions()
+}
+
+
+private class ConversionContext<T: Any>(val convertOrFail: (String) -> T,
+                                        val convertOrNull: (String) -> T?) {
     fun assertProduce(input: String, output: T) {
         assertEquals(output, convertOrFail(input.removeLeadingPlusOnJava6()))
         assertEquals(output, convertOrNull(input))
@@ -149,8 +165,8 @@ private class CompareBehaviorContext<T: Any>(val convertOrFail: (String) -> T,
     }
 }
 
-private class CompareBehaviorWithRadixContext<T: Any>(val convertOrFail: String.(Int) -> T,
-                                                      val convertOrNull: String.(Int) -> T?) {
+private class ConversionWithRadixContext<T: Any>(val convertOrFail: String.(Int) -> T,
+                                                 val convertOrNull: String.(Int) -> T?) {
     fun assertProduce(radix: Int, input: String, output: T) {
         assertEquals(output, input.removeLeadingPlusOnJava6().convertOrFail(radix))
         assertEquals(output, input.convertOrNull(radix))
