@@ -139,6 +139,8 @@ public fun String.toIntOrNull(radix: Int): Int? {
 
     val firstChar = this[0]
     if (firstChar < '0') {  // Possible leading sign
+        if (length == 1) return null  // non-digit (possible sign) only, no digits after
+
         start = 1
 
         if (firstChar == '-') {
@@ -149,9 +151,6 @@ public fun String.toIntOrNull(radix: Int): Int? {
             limit = -Int.MAX_VALUE
         } else
             return null
-
-        if (length == 1) return null  // sign only, no digits after
-
     } else {
         start = 0
         isNegative = false
@@ -199,6 +198,8 @@ public fun String.toLongOrNull(radix: Int): Long? {
 
     val firstChar = this[0]
     if (firstChar < '0') {  // Possible leading sign
+        if (length == 1) return null  // non-digit (possible sign) only, no digits after
+
         start = 1
 
         if (firstChar == '-') {
@@ -209,9 +210,6 @@ public fun String.toLongOrNull(radix: Int): Long? {
             limit = -Long.MAX_VALUE
         } else
             return null
-
-        if (length == 1) return null  // sign only, no digits after
-
     } else {
         start = 0
         isNegative = false
