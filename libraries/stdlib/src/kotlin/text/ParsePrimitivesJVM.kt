@@ -106,6 +106,7 @@ public fun String.toByteOrNull(radix: Int): Byte? {
  * or `null` if the string is not a valid representation of a number.
  */
 public fun String.toShortOrNull(): Short? = toShortOrNull(radix = 10)
+
 /**
  * Parses the string as a [Short] number and returns the result
  * or `null` if the string is not a valid representation of a number.
@@ -122,7 +123,7 @@ public fun String.toShortOrNull(radix: Int): Short? {
  */
 public fun String.toIntOrNull(): Int? = toIntOrNull(radix = 10)
 
-    /**
+/**
  * Parses the string as an [Int] number and returns the result
  * or `null` if the string is not a valid representation of a number.
  */
@@ -181,6 +182,7 @@ public fun String.toIntOrNull(radix: Int): Int? {
  * or `null` if the string is not a valid representation of a number.
  */
 public fun String.toLongOrNull(): Long? = toLongOrNull(radix = 10)
+
 /**
  * Parses the string as a [Long] number and returns the result
  * or `null` if the string is not a valid representation of a number.
